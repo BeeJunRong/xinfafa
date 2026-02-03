@@ -1,0 +1,9 @@
+{
+  "name": "xinfafa-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "mongoose": "^8.10.0"
+  }
+}
