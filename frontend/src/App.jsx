@@ -60,6 +60,8 @@ const uiText = {
     clearOrdersTip: "不会影响菜单数据，请谨慎操作。",
     clearOrders: "一键清空订单",
     addToCart: "加入购物车",
+    tableHint: "当前桌号",
+    changeTable: "更换桌号",
     sizeSmall: "小份",
     sizeLarge: "大份",
     sizeNormal: "标准"
@@ -115,6 +117,8 @@ const uiText = {
     clearOrdersTip: "Menu data will remain. Proceed carefully.",
     clearOrders: "Clear All Orders",
     addToCart: "Add to Cart",
+    tableHint: "Table",
+    changeTable: "Change Table",
     sizeSmall: "Small",
     sizeLarge: "Large",
     sizeNormal: "Regular"
@@ -170,6 +174,8 @@ const uiText = {
     clearOrdersTip: "Data menu kekal. Sila berhati-hati.",
     clearOrders: "Padam Semua Pesanan",
     addToCart: "Tambah ke Troli",
+    tableHint: "Meja",
+    changeTable: "Tukar Meja",
     sizeSmall: "Kecil",
     sizeLarge: "Besar",
     sizeNormal: "Biasa"
@@ -686,6 +692,14 @@ export default function App() {
 
       {step === "menu" && (
         <div>
+          <div className="card section space-between">
+            <div>
+              <strong>{t.tableHint}：</strong>{tableNo}
+            </div>
+            <button className="button ghost" onClick={() => setStep("table")}>
+              {t.changeTable}
+            </button>
+          </div>
           <div className="cart-button" onClick={() => setCartVisible(!cartVisible)}>
             {t.cart} {count}
           </div>
