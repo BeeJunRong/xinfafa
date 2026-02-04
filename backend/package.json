@@ -3,7 +3,14 @@
   "version": "1.0.0",
   "type": "module",
   "private": true,
+  "scripts": {
+    "dev": "node -e \"console.log('Use: npm run dev:vercel')\"",
+    "dev:vercel": "vercel dev --listen 3001"
+  },
   "dependencies": {
     "mongoose": "^8.10.0"
+  },
+  "devDependencies": {
+    "vercel": "^50.10.0"
   }
 }

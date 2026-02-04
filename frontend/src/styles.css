@@ -108,6 +108,15 @@ body {
   z-index: 10;
 }
 
+.dish-image {
+  width: 100%;
+  height: 160px;
+  border-radius: 10px;
+  margin-top: 10px;
+  object-fit: cover;
+  background: #f1f5f9;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -143,4 +152,19 @@ body {
 .small {
   font-size: 12px;
   color: #64748b;
+}
+
+.size-selector {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.size-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #475569;
 }
