@@ -10,11 +10,14 @@ const OrderSchema = new mongoose.Schema({
       nameMs: String,
       price: Number,
       quantity: Number,
-      size: String
+      size: String,
+      temp: String
     }
   ],
   totalPrice: { type: Number, required: true },
+  remark: { type: String, default: "" },
   status: { type: Number, default: 0 },
+  paid: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 });
 

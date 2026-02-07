@@ -15,13 +15,13 @@ export default async function handler(req, res) {
     const url = new URL(req.url, "http://localhost");
     const statusParam = url.searchParams.get("status");
     const status = statusParam === "1" ? 1 : 0;
-    const orders = await Order.find({ status }).sort({ createdAt: -1 });
+    const orders = await Order.find({ status }).sort({ createdAt: 1 });
     return sendJson(res, 200, { success: true, data: orders });
   }
 
   if (req.method === "POST") {
     const body = await readJson(req);
-    const { tableNo, items } = body;
+    const { tableNo, items, remark } = body;
     if (!tableNo || !Array.isArray(items) || items.length === 0) {
       return sendJson(res, 400, { success: false, message: "参数不完整" });
     }
@@ -33,6 +33,7 @@ export default async function handler(req, res) {
       tableNo,
       items,
       totalPrice,
+      remark: remark || "",
       status: 0
     });
     return sendJson(res, 200, { success: true, data: order });

@@ -16,7 +16,7 @@ async function request(path, options = {}) {
 }
 
 export const api = {
-  getDishes: () => request("/api/dishes"),
+  getDishes: (all = false) => request(all ? "/api/dishes?all=1" : "/api/dishes"),
   addDish: (payload) =>
     request("/api/dishes", { method: "POST", body: JSON.stringify(payload) }),
   updateDish: (payload) =>
@@ -31,6 +31,12 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ orderId })
     }),
+  payOrder: (orderId) =>
+    request("/api/orders/pay", {
+      method: "PUT",
+      body: JSON.stringify({ orderId })
+    }),
+  getRevenueSummary: (date) => request(`/api/orders/summary?date=${date}`),
   adminLogin: (password) =>
     request("/api/admin/login", {
       method: "POST",

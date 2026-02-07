@@ -2,7 +2,7 @@ import { connectDB } from "../db/mongo.js";
 import Dish from "../models/Dish.js";
 import { readJson, sendJson, setCors } from "./_utils.js";
 
-const categories = ["海鲜", "肉类", "菜类", "豆腐", "汤类", "饮料", "其他"];
+const categories = ["特色菜", "鱼", "虾", "墨斗", "虾姑肉", "鸡", "猪", "豆腐", "蛋", "饭", "水"];
 
 export default async function handler(req, res) {
   setCors(res);
@@ -14,7 +14,10 @@ export default async function handler(req, res) {
   await connectDB();
 
   if (req.method === "GET") {
-    const dishes = await Dish.find({ status: 1 }).sort({ _id: -1 });
+    const url = new URL(req.url, "http://localhost");
+    const includeAll = url.searchParams.get("all") === "1";
+    const filter = includeAll ? {} : { status: 1 };
+    const dishes = await Dish.find(filter).sort({ _id: -1 });
     return sendJson(res, 200, { success: true, data: dishes });
   }
 
@@ -28,7 +31,9 @@ export default async function handler(req, res) {
       category,
       price,
       priceSmall,
+      priceMedium,
       priceLarge,
+      drinkTemp,
       imageUrl,
       remark,
       remarkEn,
@@ -47,7 +52,9 @@ export default async function handler(req, res) {
       category,
       price,
       priceSmall: typeof priceSmall === "number" ? priceSmall : null,
+      priceMedium: typeof priceMedium === "number" ? priceMedium : null,
       priceLarge: typeof priceLarge === "number" ? priceLarge : null,
+      drinkTemp: typeof drinkTemp === "string" ? drinkTemp : "none",
       imageUrl,
       remark,
       remarkEn: remarkEn || "",
@@ -65,7 +72,9 @@ export default async function handler(req, res) {
       category,
       price,
       priceSmall,
+      priceMedium,
       priceLarge,
+      drinkTemp,
       imageUrl,
       remark,
       remarkEn,
@@ -77,7 +86,9 @@ export default async function handler(req, res) {
     if (typeof nameEn === "string") update.nameEn = nameEn;
     if (typeof nameMs === "string") update.nameMs = nameMs;
     if (typeof priceSmall === "number") update.priceSmall = priceSmall;
+    if (typeof priceMedium === "number") update.priceMedium = priceMedium;
     if (typeof priceLarge === "number") update.priceLarge = priceLarge;
+    if (typeof drinkTemp === "string") update.drinkTemp = drinkTemp;
     if (typeof remarkEn === "string") update.remarkEn = remarkEn;
     if (typeof remarkMs === "string") update.remarkMs = remarkMs;
     if (typeof status === "number") update.status = status;

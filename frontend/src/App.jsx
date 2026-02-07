@@ -1,11 +1,35 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { api } from "./api";
 
-const categories = ["海鲜", "肉类", "菜类", "豆腐", "汤类", "饮料", "其他"];
+const categories = ["特色菜", "鱼", "虾", "墨斗", "虾姑肉", "鸡", "猪", "豆腐", "蛋", "饭", "水"];
 const categoryLabels = {
   zh: categories,
-  en: ["Seafood", "Meat", "Vegetables", "Tofu", "Soup", "Drinks", "Others"],
-  ms: ["Makanan Laut", "Daging", "Sayur-sayuran", "Tauhu", "Sup", "Minuman", "Lain-lain"]
+  en: [
+    "Signature",
+    "Fish",
+    "Shrimp",
+    "Squid",
+    "Mantis Shrimp",
+    "Chicken",
+    "Pork",
+    "Tofu",
+    "Egg",
+    "Rice",
+    "Water"
+  ],
+  ms: [
+    "Hidangan Istimewa",
+    "Ikan",
+    "Udang",
+    "Sotong",
+    "Udang Lipan",
+    "Ayam",
+    "Babi",
+    "Tauhu",
+    "Telur",
+    "Nasi",
+    "Air"
+  ]
 };
 
 const uiText = {
@@ -46,7 +70,13 @@ const uiText = {
     nameMs: "名称（Bahasa Melayu）",
     price: "价格",
     priceSmall: "小份价格",
+    priceMedium: "中份价格",
     priceLarge: "大份价格",
+    drinkTemp: "饮料温度",
+    drinkTempNone: "不适用",
+    drinkTempCold: "冷",
+    drinkTempHot: "热",
+    drinkTempBoth: "冷/热",
     imageUrl: "图片URL",
     remarkZh: "备注（中文）",
     remarkEn: "备注（English）",
@@ -63,8 +93,17 @@ const uiText = {
     tableHint: "当前桌号",
     changeTable: "更换桌号",
     sizeSmall: "小份",
+    sizeMedium: "中份",
     sizeLarge: "大份",
-    sizeNormal: "标准"
+    cartRemark: "备注",
+    cartRemarkPlaceholder: "口味/忌口等备注",
+    paid: "已付款",
+    notPaid: "未付款",
+    revenueTitle: "当日收款统计",
+    revenueDate: "日期",
+    revenueAmount: "收款总额",
+    hideDish: "隐藏",
+    showDish: "显示"
   },
   en: {
     appName: "Xinfafa",
@@ -103,7 +142,13 @@ const uiText = {
     nameMs: "Name (Bahasa Melayu)",
     price: "Price",
     priceSmall: "Small Price",
+    priceMedium: "Medium Price",
     priceLarge: "Large Price",
+    drinkTemp: "Drink Temperature",
+    drinkTempNone: "Not applicable",
+    drinkTempCold: "Cold",
+    drinkTempHot: "Hot",
+    drinkTempBoth: "Cold/Hot",
     imageUrl: "Image URL",
     remarkZh: "Remark (Chinese)",
     remarkEn: "Remark (English)",
@@ -120,8 +165,17 @@ const uiText = {
     tableHint: "Table",
     changeTable: "Change Table",
     sizeSmall: "Small",
+    sizeMedium: "Medium",
     sizeLarge: "Large",
-    sizeNormal: "Regular"
+    cartRemark: "Remark",
+    cartRemarkPlaceholder: "Taste notes or dietary needs",
+    paid: "Paid",
+    notPaid: "Unpaid",
+    revenueTitle: "Daily Revenue",
+    revenueDate: "Date",
+    revenueAmount: "Total Revenue",
+    hideDish: "Hide",
+    showDish: "Show"
   },
   ms: {
     appName: "Xinfafa",
@@ -160,7 +214,13 @@ const uiText = {
     nameMs: "Nama (Bahasa Melayu)",
     price: "Harga",
     priceSmall: "Harga Kecil",
+    priceMedium: "Harga Sederhana",
     priceLarge: "Harga Besar",
+    drinkTemp: "Suhu Minuman",
+    drinkTempNone: "Tidak berkenaan",
+    drinkTempCold: "Sejuk",
+    drinkTempHot: "Panas",
+    drinkTempBoth: "Sejuk/Panas",
     imageUrl: "URL Gambar",
     remarkZh: "Catatan (Cina)",
     remarkEn: "Catatan (English)",
@@ -177,8 +237,17 @@ const uiText = {
     tableHint: "Meja",
     changeTable: "Tukar Meja",
     sizeSmall: "Kecil",
+    sizeMedium: "Sederhana",
     sizeLarge: "Besar",
-    sizeNormal: "Biasa"
+    cartRemark: "Catatan",
+    cartRemarkPlaceholder: "Rasa/keperluan diet",
+    paid: "Dibayar",
+    notPaid: "Belum bayar",
+    revenueTitle: "Jumlah Kutipan Harian",
+    revenueDate: "Tarikh",
+    revenueAmount: "Jumlah Kutipan",
+    hideDish: "Sembunyi",
+    showDish: "Papar"
   }
 };
 
@@ -197,27 +266,27 @@ function useCart() {
     [cart]
   );
 
-  const addItem = (dish, size, price) => {
+  const addItem = (dish, size, price, temp) => {
     setCart((prev) => {
       const found = prev.find(
-        (item) => item._id === dish._id && item.size === size
+        (item) => item._id === dish._id && item.size === size && item.temp === temp
       );
       if (found) {
         return prev.map((item) =>
-          item._id === dish._id && item.size === size
+          item._id === dish._id && item.size === size && item.temp === temp
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
-      return [...prev, { ...dish, size, price, quantity: 1 }];
+      return [...prev, { ...dish, size, price, temp, quantity: 1 }];
     });
   };
 
-  const updateQuantity = (id, size, quantity) => {
+  const updateQuantity = (id, size, temp, quantity) => {
     setCart((prev) =>
       prev
         .map((item) =>
-          item._id === id && item.size === size
+          item._id === id && item.size === size && item.temp === temp
             ? { ...item, quantity }
             : item
         )
@@ -254,7 +323,9 @@ export default function App() {
     category: categories[0],
     price: "",
     priceSmall: "",
+    priceMedium: "",
     priceLarge: "",
+    drinkTemp: "none",
     imageUrl: "",
     remark: "",
     remarkEn: "",
@@ -262,6 +333,11 @@ export default function App() {
   });
   const [editingDishId, setEditingDishId] = useState(null);
   const [sizeSelections, setSizeSelections] = useState({});
+  const [tempSelections, setTempSelections] = useState({});
+  const [cartRemark, setCartRemark] = useState("");
+  const [lastOrder, setLastOrder] = useState(null);
+  const [revenueDate, setRevenueDate] = useState("");
+  const [revenueTotal, setRevenueTotal] = useState(0);
 
   const { cart, total, count, addItem, updateQuantity, clear } = useCart();
 
@@ -279,13 +355,22 @@ export default function App() {
   const getDishSizeOptions = (dish) => {
     const options = [];
     if (typeof dish.priceSmall === "number") {
-      options.push({ label: "小份", value: "small", price: dish.priceSmall });
+      options.push({ label: "small", value: "small", price: dish.priceSmall });
+    }
+    const mediumPrice =
+      typeof dish.priceMedium === "number"
+        ? dish.priceMedium
+        : typeof dish.price === "number"
+        ? dish.price
+        : null;
+    if (typeof mediumPrice === "number") {
+      options.push({ label: "medium", value: "medium", price: mediumPrice });
     }
     if (typeof dish.priceLarge === "number") {
-      options.push({ label: "大份", value: "large", price: dish.priceLarge });
+      options.push({ label: "large", value: "large", price: dish.priceLarge });
     }
     if (options.length === 0) {
-      options.push({ label: "标准", value: "normal", price: dish.price });
+      options.push({ label: "medium", value: "medium", price: dish.price });
     }
     return options;
   };
@@ -293,6 +378,19 @@ export default function App() {
   const getSelectedSize = (dish) => {
     const options = getDishSizeOptions(dish);
     return sizeSelections[dish._id] || options[0].value;
+  };
+
+  const getDrinkTempOptions = (dish) => {
+    if (dish.drinkTemp === "both") return ["cold", "hot"];
+    if (dish.drinkTemp === "cold") return ["cold"];
+    if (dish.drinkTemp === "hot") return ["hot"];
+    return [];
+  };
+
+  const getSelectedTemp = (dish) => {
+    const options = getDrinkTempOptions(dish);
+    if (options.length === 0) return "";
+    return tempSelections[dish._id] || options[0];
   };
 
   const getDishName = (dish) => {
@@ -324,18 +422,36 @@ export default function App() {
     return item.name;
   };
 
+  const getSizeLabel = (value) => {
+    if (value === "small") return t.sizeSmall;
+    if (value === "large") return t.sizeLarge;
+    return t.sizeMedium;
+  };
+
+  const getTempLabel = (value) => {
+    if (value === "cold") return t.drinkTempCold;
+    if (value === "hot") return t.drinkTempHot;
+    return "";
+  };
+
   useEffect(() => {
     if (mode === "customer" && step === "menu") {
-      api.getDishes().then((res) => setDishes(res.data)).catch(handleError);
+      api.getDishes(false).then((res) => setDishes(res.data)).catch(handleError);
     }
   }, [mode, step]);
 
   useEffect(() => {
     if (mode === "admin" && adminAuthed) {
       loadOrders(orderStatus);
-      loadDishes();
+      loadDishes(true);
     }
   }, [mode, adminAuthed, orderStatus]);
+
+  useEffect(() => {
+    if (mode === "admin" && adminAuthed && adminTab === "orders" && revenueDate) {
+      handleLoadRevenue(revenueDate);
+    }
+  }, [mode, adminAuthed, adminTab, revenueDate]);
 
   const handleError = (err) => {
     setMessage(err.message || "操作失败");
@@ -361,10 +477,19 @@ export default function App() {
           nameMs: item.nameMs || "",
           price: item.price,
           quantity: item.quantity,
-          size: item.size
-        }))
+          size: item.size,
+          temp: item.temp || ""
+        })),
+        remark: cartRemark
+      });
+      setLastOrder({
+        tableNo,
+        items: cart,
+        total,
+        remark: cartRemark
       });
       clear();
+      setCartRemark("");
       setMessage("下单成功，请线下付款");
       setStep("success");
     } catch (err) {
@@ -381,9 +506,9 @@ export default function App() {
     }
   };
 
-  const loadDishes = async () => {
+  const loadDishes = async (all = false) => {
     try {
-      const res = await api.getDishes();
+      const res = await api.getDishes(all);
       setDishes(res.data);
     } catch (err) {
       handleError(err);
@@ -394,6 +519,27 @@ export default function App() {
     try {
       await api.finishOrder(orderId);
       loadOrders(orderStatus);
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
+  const handlePayOrder = async (orderId) => {
+    try {
+      await api.payOrder(orderId);
+      loadOrders(orderStatus);
+      if (revenueDate) {
+        handleLoadRevenue(revenueDate);
+      }
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
+  const handleLoadRevenue = async (date) => {
+    try {
+      const res = await api.getRevenueSummary(date);
+      setRevenueTotal(res.data.total || 0);
     } catch (err) {
       handleError(err);
     }
@@ -414,6 +560,7 @@ export default function App() {
       ...dishForm,
       price: Number(dishForm.price),
       priceSmall: dishForm.priceSmall === "" ? undefined : Number(dishForm.priceSmall),
+      priceMedium: dishForm.priceMedium === "" ? undefined : Number(dishForm.priceMedium),
       priceLarge: dishForm.priceLarge === "" ? undefined : Number(dishForm.priceLarge)
     };
     try {
@@ -429,7 +576,9 @@ export default function App() {
         category: categories[0],
         price: "",
         priceSmall: "",
+        priceMedium: "",
         priceLarge: "",
+        drinkTemp: "none",
         imageUrl: "",
         remark: "",
         remarkEn: "",
@@ -451,7 +600,9 @@ export default function App() {
       category: dish.category,
       price: dish.price,
       priceSmall: dish.priceSmall ?? "",
+      priceMedium: dish.priceMedium ?? dish.price ?? "",
       priceLarge: dish.priceLarge ?? "",
+      drinkTemp: dish.drinkTemp || "none",
       imageUrl: dish.imageUrl || "",
       remark: dish.remark || "",
       remarkEn: dish.remarkEn || "",
@@ -464,6 +615,15 @@ export default function App() {
     try {
       await api.deleteDish(id);
       loadDishes();
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
+  const handleToggleDishStatus = async (dish) => {
+    try {
+      await api.updateDish({ id: dish._id, status: dish.status === 1 ? 0 : 1 });
+      loadDishes(true);
     } catch (err) {
       handleError(err);
     }
@@ -525,6 +685,22 @@ export default function App() {
                     <button className={`button ${orderStatus === 1 ? "" : "ghost"}`} onClick={() => setOrderStatus(1)}>{t.statusHistory}</button>
                   </div>
                 </div>
+                {orderStatus === 1 && (
+                  <div className="section space-between">
+                    <div className="flex">
+                      <label className="small">{t.revenueDate}</label>
+                      <input
+                        className="input input-inline"
+                        type="date"
+                        value={revenueDate}
+                        onChange={(event) => setRevenueDate(event.target.value)}
+                      />
+                    </div>
+                    <div className="small">
+                      {t.revenueAmount}：￥{formatPrice(revenueTotal)}
+                    </div>
+                  </div>
+                )}
                 <table className="table">
                   <thead>
                     <tr>
@@ -542,19 +718,29 @@ export default function App() {
                         <td>{new Date(order.createdAt).toLocaleString()}</td>
                         <td>
                           {order.items.map((item) => (
-                            <div key={`${item.dishId}-${item.size || "normal"}`} className="small">
+                            <div key={`${item.dishId}-${item.size || "medium"}-${item.temp || "none"}`} className="small">
                               {getItemName(item)}
-                              {item.size ? `（${item.size === "large" ? t.sizeLarge : item.size === "small" ? t.sizeSmall : t.sizeNormal}）` : ""}
+                              {item.size ? `（${getSizeLabel(item.size)}）` : ""}
+                              {item.temp ? `/${getTempLabel(item.temp)}` : ""}
                               {` x ${item.quantity}（￥${formatPrice(item.price)}）`}
                             </div>
                           ))}
+                          {order.remark && (
+                            <div className="small">{t.cartRemark}：{order.remark}</div>
+                          )}
                         </td>
                         <td>￥{formatPrice(order.totalPrice)}</td>
                         <td>
                           {orderStatus === 0 ? (
                             <button className="button" onClick={() => handleFinishOrder(order._id)}>{t.markFinished}</button>
                           ) : (
-                            <span className="tag">{t.finished}</span>
+                            <div className="flex">
+                              {order.paid ? (
+                                <span className="tag">{t.paid}</span>
+                              ) : (
+                                <button className="button" onClick={() => handlePayOrder(order._id)}>{t.paid}</button>
+                              )}
+                            </div>
                           )}
                         </td>
                       </tr>
@@ -584,12 +770,20 @@ export default function App() {
                           ))}
                         </select>
                       </div>
-                      <input className="input" placeholder={t.price} value={dishForm.price} onChange={(event) => setDishForm({ ...dishForm, price: event.target.value })} />
+                      <input className="input" placeholder={t.priceMedium} value={dishForm.priceMedium} onChange={(event) => setDishForm({ ...dishForm, priceMedium: event.target.value, price: event.target.value })} />
                       <div className="section">
                         <input className="input" placeholder={t.priceSmall} value={dishForm.priceSmall} onChange={(event) => setDishForm({ ...dishForm, priceSmall: event.target.value })} />
                       </div>
                       <div className="section">
                         <input className="input" placeholder={t.priceLarge} value={dishForm.priceLarge} onChange={(event) => setDishForm({ ...dishForm, priceLarge: event.target.value })} />
+                      </div>
+                      <div className="section">
+                        <select className="input" value={dishForm.drinkTemp} onChange={(event) => setDishForm({ ...dishForm, drinkTemp: event.target.value })}>
+                          <option value="none">{t.drinkTempNone}</option>
+                          <option value="cold">{t.drinkTempCold}</option>
+                          <option value="hot">{t.drinkTempHot}</option>
+                          <option value="both">{t.drinkTempBoth}</option>
+                        </select>
                       </div>
                       <div className="section">
                         <input className="input" placeholder={t.imageUrl} value={dishForm.imageUrl} onChange={(event) => setDishForm({ ...dishForm, imageUrl: event.target.value })} />
@@ -613,7 +807,9 @@ export default function App() {
                               category: categories[0],
                               price: "",
                               priceSmall: "",
+                              priceMedium: "",
                               priceLarge: "",
+                              drinkTemp: "none",
                               imageUrl: "",
                               remark: "",
                               remarkEn: "",
@@ -630,14 +826,20 @@ export default function App() {
                     {dishes.map((dish) => (
                       <div key={dish._id} className="section space-between">
                         <div>
-                          <div>{getDishName(dish)}</div>
+                          <div className="flex">
+                            <span>{getDishName(dish)}</span>
+                            {dish.status === 0 && <span className="tag">{t.hideDish}</span>}
+                          </div>
                           <div className="small">
                             {categoryLabelMap[dish.category]} · {getDishSizeOptions(dish)
-                              .map((option) => `${option.label} ￥${formatPrice(option.price)}`)
+                              .map((option) => `${getSizeLabel(option.value)} ￥${formatPrice(option.price)}`)
                               .join(" / ")}
                           </div>
                         </div>
                         <div className="flex">
+                          <button className="button ghost" onClick={() => handleToggleDishStatus(dish)}>
+                            {dish.status === 1 ? t.hideDish : t.showDish}
+                          </button>
                           <button className="button ghost" onClick={() => handleEditDish(dish)}>{t.edit}</button>
                           <button className="button danger" onClick={() => handleDeleteDish(dish._id)}>{t.delete}</button>
                         </div>
@@ -709,21 +911,32 @@ export default function App() {
               <h4>{t.cart}</h4>
               {cart.length === 0 && <div className="small">{t.emptyCart}</div>}
               {cart.map((item) => (
-                <div key={`${item._id}-${item.size}`} className="section space-between">
+                <div key={`${item._id}-${item.size}-${item.temp || "none"}`} className="section space-between">
                   <div>
                     <div>{getItemName(item)}</div>
                     <div className="small">
-                      {item.size ? `${item.size === "large" ? t.sizeLarge : item.size === "small" ? t.sizeSmall : t.sizeNormal} · ` : ""}
+                      {item.size ? `${getSizeLabel(item.size)} · ` : ""}
+                      {item.temp ? `${getTempLabel(item.temp)} · ` : ""}
                       ￥{formatPrice(item.price)}
                     </div>
                   </div>
                   <div className="flex">
-                    <button className="button ghost" onClick={() => updateQuantity(item._id, item.size, item.quantity - 1)}>-</button>
+                    <button className="button ghost" onClick={() => updateQuantity(item._id, item.size, item.temp, item.quantity - 1)}>-</button>
                     <span>{item.quantity}</span>
-                    <button className="button ghost" onClick={() => updateQuantity(item._id, item.size, item.quantity + 1)}>+</button>
+                    <button className="button ghost" onClick={() => updateQuantity(item._id, item.size, item.temp, item.quantity + 1)}>+</button>
                   </div>
                 </div>
               ))}
+              <div className="section">
+                <label className="small">{t.cartRemark}</label>
+                <textarea
+                  className="input"
+                  rows={3}
+                  placeholder={t.cartRemarkPlaceholder}
+                  value={cartRemark}
+                  onChange={(event) => setCartRemark(event.target.value)}
+                />
+              </div>
               <div className="section space-between">
                 <strong>{t.total}</strong>
                 <strong>￥{formatPrice(total)}</strong>
@@ -732,72 +945,93 @@ export default function App() {
             </div>
           )}
 
-          <div className="section card">
-            <div className="flex">
+          <div className="menu-layout">
+            <div className="card category-list">
               {categories.map((cat) => (
                 <button
                   key={cat}
-                  className={`button ${selectedCategory === cat ? "" : "ghost"}`}
+                  className={`button category-button ${selectedCategory === cat ? "" : "ghost"}`}
                   onClick={() => setSelectedCategory(cat)}
                 >
                   {categoryLabelMap[cat]}
                 </button>
               ))}
             </div>
-          </div>
 
-          <div className="grid">
-            {filteredDishes.map((dish) => (
-              <div key={dish._id} className="card">
-                <div className="space-between">
-                  <div>
-                    <h4>{getDishName(dish)}</h4>
-                    <div className="small">
-                      {getDishSizeOptions(dish)
-                        .map((option) => `${option.label} ￥${formatPrice(option.price)}`)
-                        .join(" / ")}
+            <div className="grid">
+              {filteredDishes.map((dish) => (
+                <div key={dish._id} className="card">
+                  <div className="space-between">
+                    <div>
+                      <h4>{getDishName(dish)}</h4>
+                      <div className="small">
+                        {getDishSizeOptions(dish)
+                          .map((option) => `${getSizeLabel(option.value)} ￥${formatPrice(option.price)}`)
+                          .join(" / ")}
+                      </div>
                     </div>
+                    <span className="badge">{categoryLabelMap[dish.category]}</span>
                   </div>
-                  <span className="badge">{dish.category}</span>
-                </div>
-                {dish.imageUrl && (
-                  <img src={dish.imageUrl} alt={dish.name} className="dish-image" />
-                )}
-                {getDishRemark(dish) && <div className="small section">{getDishRemark(dish)}</div>}
-                <div className="section">
-                  <div className="size-selector">
-                    {getDishSizeOptions(dish).map((option) => (
-                      <label key={option.value} className="size-option">
-                        <input
-                          type="radio"
-                          name={`size-${dish._id}`}
-                          value={option.value}
-                          checked={getSelectedSize(dish) === option.value}
-                          onChange={() =>
-                            setSizeSelections((prev) => ({
-                              ...prev,
-                              [dish._id]: option.value
-                            }))
-                          }
-                        />
-                        {option.value === "small" ? t.sizeSmall : option.value === "large" ? t.sizeLarge : t.sizeNormal}
-                      </label>
-                    ))}
+                  {dish.imageUrl && (
+                    <img src={dish.imageUrl} alt={dish.name} className="dish-image" />
+                  )}
+                  {getDishRemark(dish) && <div className="small section">{getDishRemark(dish)}</div>}
+                  <div className="section">
+                    <div className="size-selector">
+                      {getDishSizeOptions(dish).map((option) => (
+                        <label key={option.value} className="size-option">
+                          <input
+                            type="radio"
+                            name={`size-${dish._id}`}
+                            value={option.value}
+                            checked={getSelectedSize(dish) === option.value}
+                            onChange={() =>
+                              setSizeSelections((prev) => ({
+                                ...prev,
+                                [dish._id]: option.value
+                              }))
+                            }
+                          />
+                          {option.value === "small" ? t.sizeSmall : option.value === "large" ? t.sizeLarge : t.sizeMedium}
+                        </label>
+                      ))}
+                    </div>
+                    {getDrinkTempOptions(dish).length > 0 && (
+                      <div className="size-selector">
+                        {getDrinkTempOptions(dish).map((temp) => (
+                          <label key={temp} className="size-option">
+                            <input
+                              type="radio"
+                              name={`temp-${dish._id}`}
+                              value={temp}
+                              checked={getSelectedTemp(dish) === temp}
+                              onChange={() =>
+                                setTempSelections((prev) => ({
+                                  ...prev,
+                                  [dish._id]: temp
+                                }))
+                              }
+                            />
+                            {getTempLabel(temp)}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    <button
+                      className="button"
+                      onClick={() => {
+                        const selected = getDishSizeOptions(dish).find(
+                          (option) => option.value === getSelectedSize(dish)
+                        );
+                        addItem(dish, selected.value, selected.price, getSelectedTemp(dish));
+                      }}
+                    >
+                      {t.addToCart}
+                    </button>
                   </div>
-                  <button
-                    className="button"
-                    onClick={() => {
-                      const selected = getDishSizeOptions(dish).find(
-                        (option) => option.value === getSelectedSize(dish)
-                      );
-                      addItem(dish, selected.value, selected.price);
-                    }}
-                  >
-                    {t.addToCart}
-                  </button>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -807,6 +1041,22 @@ export default function App() {
           <h3>{t.orderSuccess}</h3>
           <p>{t.tableNo}：{tableNo}</p>
           <p>{t.orderSuccessTip}</p>
+          {lastOrder && (
+            <div className="section">
+              {lastOrder.items.map((item) => (
+                <div key={`${item._id}-${item.size}-${item.temp || "none"}`} className="small">
+                  {getItemName(item)}
+                  {item.size ? `（${getSizeLabel(item.size)}）` : ""}
+                  {item.temp ? `/${getTempLabel(item.temp)}` : ""}
+                  {` x ${item.quantity}（￥${formatPrice(item.price)}）`}
+                </div>
+              ))}
+              {lastOrder.remark && (
+                <div className="small">{t.cartRemark}：{lastOrder.remark}</div>
+              )}
+              <div className="small">{t.total}：￥{formatPrice(lastOrder.total)}</div>
+            </div>
+          )}
           <div className="section">
             <button className="button" onClick={() => setStep("menu")}>{t.continueOrder}</button>
           </div>
