@@ -2,7 +2,7 @@ import { connectDB } from "../db/mongo.js";
 import Dish from "../models/Dish.js";
 import { readJson, sendJson, setCors } from "./_utils.js";
 
-const categories = ["特色菜", "鱼", "虾", "墨斗", "虾姑肉", "鸡", "猪", "豆腐", "蛋", "饭", "水"];
+const categories = ["特色菜", "鱼类", "虾类", "墨斗", "虾姑肉", "鸡肉", "猪肉", "豆腐", "蛋类", "菜/汤", "饭水"];
 
 export default async function handler(req, res) {
   setCors(res);

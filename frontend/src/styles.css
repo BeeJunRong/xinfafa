@@ -233,16 +233,16 @@ body {
 
 @media (max-width: 640px) {
   .menu-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: 120px 1fr;
   }
 
   .category-list {
-    position: static;
-    flex-direction: row;
-    flex-wrap: wrap;
+    position: sticky;
+    top: 72px;
+    flex-direction: column;
   }
 
   .category-button {
-    width: auto;
+    width: 100%;
   }
 }

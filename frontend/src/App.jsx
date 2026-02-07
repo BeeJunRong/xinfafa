@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { api } from "./api";
 
-const categories = ["特色菜", "鱼", "虾", "墨斗", "虾姑肉", "鸡", "猪", "豆腐", "蛋", "饭", "水"];
+const categories = ["特色菜", "鱼类", "虾类", "墨斗", "虾姑肉", "鸡肉", "猪肉", "豆腐", "蛋类", "菜/汤", "饭/水"];
 const categoryLabels = {
   zh: categories,
   en: [
@@ -13,9 +13,9 @@ const categoryLabels = {
     "Chicken",
     "Pork",
     "Tofu",
-    "Egg",
-    "Rice",
-    "Water"
+    "Eggs",
+    "Vegetables/Soup",
+    "Rice/Water"
   ],
   ms: [
     "Hidangan Istimewa",
@@ -24,11 +24,11 @@ const categoryLabels = {
     "Sotong",
     "Udang Lipan",
     "Ayam",
-    "Babi",
+    "Khinzir",
     "Tauhu",
     "Telur",
-    "Nasi",
-    "Air"
+    "Sayur/Sup",
+    "Nasi/Air"
   ]
 };
 
@@ -646,8 +646,8 @@ export default function App() {
           <div className="logo">{t.adminName}</div>
           <div className="flex">
             <button className={`button ${language === "zh" ? "" : "ghost"}`} onClick={() => setLanguage("zh")}>中文</button>
-            <button className={`button ${language === "ms" ? "" : "ghost"}`} onClick={() => setLanguage("ms")}>马来文</button>
             <button className={`button ${language === "en" ? "" : "ghost"}`} onClick={() => setLanguage("en")}>English</button>
+            <button className={`button ${language === "ms" ? "" : "ghost"}`} onClick={() => setLanguage("ms")}>马来文</button>
             <button className="button ghost" onClick={() => setMode("customer")}>{t.backToCustomer}</button>
           </div>
         </div>
@@ -869,8 +869,8 @@ export default function App() {
         <div className="logo">{t.appName}</div>
         <div className="flex">
           <button className={`button ${language === "zh" ? "" : "ghost"}`} onClick={() => setLanguage("zh")}>中文</button>
-          <button className={`button ${language === "ms" ? "" : "ghost"}`} onClick={() => setLanguage("ms")}>马来文</button>
           <button className={`button ${language === "en" ? "" : "ghost"}`} onClick={() => setLanguage("en")}>English</button>
+          <button className={`button ${language === "ms" ? "" : "ghost"}`} onClick={() => setLanguage("ms")}>马来文</button>
           <div className="admin-entry" onClick={() => setMode("admin")}>{t.adminEntry}</div>
         </div>
       </div>
