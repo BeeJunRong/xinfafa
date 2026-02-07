@@ -116,6 +116,11 @@ body {
   max-height: 70vh;
   overflow: auto;
   z-index: 10;
+  font-size: clamp(16px, 3.6vw, 20px);
+}
+
+.cart-panel .small {
+  font-size: clamp(14px, 3.2vw, 18px);
 }
 
 .dish-image {

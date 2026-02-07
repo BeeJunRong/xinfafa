@@ -1103,13 +1103,21 @@ export default function App() {
                     <div>
                       <h4>{getDishName(dish)}</h4>
                       <div className="small">
-                        {getDisplayOptions(dish)
-                          .map((option) =>
-                            option.priceText
-                              ? `${getSizeLabel(option.value)} ${option.priceText}`
-                              : `${getSizeLabel(option.value)} ￥${formatPrice(option.price)}`
-                          )
-                          .join(" / ")}
+                        {(() => {
+                          const options = getDisplayOptions(dish);
+                          if (options.length === 1 && options[0].value === "standard") {
+                            return options[0].priceText
+                              ? options[0].priceText
+                              : `￥${formatPrice(options[0].price)}`;
+                          }
+                          return options
+                            .map((option) =>
+                              option.priceText
+                                ? `${getSizeLabel(option.value)} ${option.priceText}`
+                                : `${getSizeLabel(option.value)} ￥${formatPrice(option.price)}`
+                            )
+                            .join(" / ");
+                        })()}
                       </div>
                     </div>
                     <span className="badge">{categoryLabelMap[dish.category]}</span>
