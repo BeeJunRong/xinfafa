@@ -405,14 +405,8 @@ export default function App() {
     if (typeof dish.priceSmall === "number" && dish.priceSmall > 0) {
       options.push({ label: "small", value: "small", price: dish.priceSmall });
     }
-    const mediumPrice =
-      typeof dish.priceMedium === "number"
-        ? dish.priceMedium
-        : typeof dish.price === "number"
-        ? dish.price
-        : null;
-    if (typeof mediumPrice === "number" && mediumPrice > 0) {
-      options.push({ label: "medium", value: "medium", price: mediumPrice });
+    if (typeof dish.priceMedium === "number" && dish.priceMedium > 0) {
+      options.push({ label: "medium", value: "medium", price: dish.priceMedium });
     }
     if (typeof dish.priceLarge === "number" && dish.priceLarge > 0) {
       options.push({ label: "large", value: "large", price: dish.priceLarge });
@@ -432,10 +426,8 @@ export default function App() {
   const getDisplayOptions = (dish) => {
     const standardOption = getStandardOption(dish);
     const sizeOptions = getSizeOptions(dish);
-    const selected = getSelectedSize(dish, standardOption, sizeOptions);
-    if (selected === "standard" && standardOption) return [standardOption];
-    if (selected !== "standard" && sizeOptions.length > 0) return sizeOptions;
-    return standardOption ? [standardOption] : sizeOptions;
+    if (sizeOptions.length > 0) return sizeOptions;
+    return standardOption ? [standardOption] : [];
   };
 
   const getDrinkTempOptions = (dish) => {
@@ -682,7 +674,7 @@ export default function App() {
       price: dish.price,
       priceStandard: dish.priceStandard ?? dish.price ?? "",
       priceSmall: dish.priceSmall ?? "",
-      priceMedium: dish.priceMedium ?? dish.price ?? "",
+      priceMedium: dish.priceMedium ?? "",
       priceLarge: dish.priceLarge ?? "",
       drinkTemp: dish.drinkTemp || "none",
       imageUrl: dish.imageUrl || "",
@@ -856,7 +848,15 @@ export default function App() {
                         className="input"
                         placeholder={t.priceStandard}
                         value={dishForm.priceStandard}
-                        onChange={(event) => setDishForm({ ...dishForm, priceStandard: event.target.value })}
+                        onChange={(event) =>
+                          setDishForm({
+                            ...dishForm,
+                            priceStandard: event.target.value,
+                            priceSmall: event.target.value.trim() ? "" : dishForm.priceSmall,
+                            priceMedium: event.target.value.trim() ? "" : dishForm.priceMedium,
+                            priceLarge: event.target.value.trim() ? "" : dishForm.priceLarge
+                          })
+                        }
                         disabled={disableStandard}
                       />
                       <div className="section">
@@ -864,7 +864,13 @@ export default function App() {
                           className="input"
                           placeholder={t.priceMedium}
                           value={dishForm.priceMedium}
-                          onChange={(event) => setDishForm({ ...dishForm, priceMedium: event.target.value })}
+                          onChange={(event) =>
+                            setDishForm({
+                              ...dishForm,
+                              priceMedium: event.target.value,
+                              priceStandard: event.target.value.trim() ? "" : dishForm.priceStandard
+                            })
+                          }
                           disabled={disableSizes}
                         />
                       </div>
@@ -873,7 +879,13 @@ export default function App() {
                           className="input"
                           placeholder={t.priceSmall}
                           value={dishForm.priceSmall}
-                          onChange={(event) => setDishForm({ ...dishForm, priceSmall: event.target.value })}
+                          onChange={(event) =>
+                            setDishForm({
+                              ...dishForm,
+                              priceSmall: event.target.value,
+                              priceStandard: event.target.value.trim() ? "" : dishForm.priceStandard
+                            })
+                          }
                           disabled={disableSizes}
                         />
                       </div>
@@ -882,7 +894,13 @@ export default function App() {
                           className="input"
                           placeholder={t.priceLarge}
                           value={dishForm.priceLarge}
-                          onChange={(event) => setDishForm({ ...dishForm, priceLarge: event.target.value })}
+                          onChange={(event) =>
+                            setDishForm({
+                              ...dishForm,
+                              priceLarge: event.target.value,
+                              priceStandard: event.target.value.trim() ? "" : dishForm.priceStandard
+                            })
+                          }
                           disabled={disableSizes}
                         />
                       </div>
@@ -1104,19 +1122,18 @@ export default function App() {
                     {(() => {
                       const standardOption = getStandardOption(dish);
                       const sizeOptions = getSizeOptions(dish);
-                      const selected = getSelectedSize(dish, standardOption, sizeOptions);
-                      const showStandard = Boolean(standardOption) && selected === "standard";
-                      const showSizes = sizeOptions.length > 0 && selected !== "standard";
-                      return (
-                        <div className="size-selector">
-                          {showStandard && (
-                            <label className="size-option">
-                              <input type="radio" checked readOnly />
-                              {t.sizeStandard}
-                            </label>
-                          )}
-                          {showSizes &&
-                            sizeOptions.map((option) => (
+                      if (sizeOptions.length === 0 && standardOption) {
+                        return (
+                          <div className="size-selector">
+                            <span className="small">{t.sizeStandard}</span>
+                          </div>
+                        );
+                      }
+                      if (sizeOptions.length > 0) {
+                        const selected = getSelectedSize(dish, standardOption, sizeOptions);
+                        return (
+                          <div className="size-selector">
+                            {sizeOptions.map((option) => (
                               <label key={option.value} className="size-option">
                                 <input
                                   type="radio"
@@ -1133,22 +1150,10 @@ export default function App() {
                                 {getSizeLabel(option.value)}
                               </label>
                             ))}
-                          {standardOption && sizeOptions.length > 0 && (
-                            <button
-                              type="button"
-                              className="button ghost"
-                              onClick={() =>
-                                setSizeSelections((prev) => ({
-                                  ...prev,
-                                  [dish._id]: showStandard ? sizeOptions[0].value : "standard"
-                                }))
-                              }
-                            >
-                              {showStandard ? t.useSizes : t.useStandard}
-                            </button>
-                          )}
-                        </div>
-                      );
+                          </div>
+                        );
+                      }
+                      return null;
                     })()}
                     {getDrinkTempOptions(dish).length > 0 && (
                       <div className="size-selector">
@@ -1176,7 +1181,10 @@ export default function App() {
                       onClick={() => {
                         const standardOption = getStandardOption(dish);
                         const sizeOptions = getSizeOptions(dish);
-                        const selectedValue = getSelectedSize(dish, standardOption, sizeOptions);
+                        const selectedValue =
+                          sizeOptions.length > 0
+                            ? getSelectedSize(dish, standardOption, sizeOptions)
+                            : "standard";
                         const selectedOption =
                           selectedValue === "standard"
                             ? standardOption
@@ -1202,7 +1210,7 @@ export default function App() {
       )}
 
       {step === "success" && (
-        <div className="card">
+        <div className="card order-success">
           <h3>{t.orderSuccess}</h3>
           <p>{t.tableNo}：{tableNo}</p>
           <p>{t.orderSuccessTip}</p>

@@ -208,6 +208,15 @@ body {
   color: #475569;
 }
 
+.order-success {
+  font-size: clamp(18px, 4.2vw, 24px);
+  line-height: 1.6;
+}
+
+.order-success .small {
+  font-size: clamp(16px, 3.6vw, 20px);
+}
+
 .menu-layout {
   display: grid;
   grid-template-columns: 180px 1fr;
