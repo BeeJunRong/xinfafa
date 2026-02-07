@@ -416,10 +416,11 @@ export default function App() {
 
   const getSelectedSize = (dish, standardOption, sizeOptions) => {
     const selected = sizeSelections[dish._id];
-    if (selected === "standard" && standardOption) return "standard";
-    if (sizeOptions.some((option) => option.value === selected)) return selected;
+    if (sizeOptions.length > 0) {
+      if (sizeOptions.some((option) => option.value === selected)) return selected;
+      return sizeOptions[0].value;
+    }
     if (standardOption) return "standard";
-    if (sizeOptions.length > 0) return sizeOptions[0].value;
     return "standard";
   };
 
