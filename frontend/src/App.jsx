@@ -1107,8 +1107,8 @@ export default function App() {
                           const options = getDisplayOptions(dish);
                           if (options.length === 1 && options[0].value === "standard") {
                             return options[0].priceText
-                              ? options[0].priceText
-                              : `￥${formatPrice(options[0].price)}`;
+                              ? `${t.sizeStandard} ${options[0].priceText}`
+                              : `${t.sizeStandard} ￥${formatPrice(options[0].price)}`;
                           }
                           return options
                             .map((option) =>
@@ -1131,11 +1131,7 @@ export default function App() {
                       const standardOption = getStandardOption(dish);
                       const sizeOptions = getSizeOptions(dish);
                       if (sizeOptions.length === 0 && standardOption) {
-                        return (
-                          <div className="size-selector">
-                            <span className="small">{t.sizeStandard}</span>
-                          </div>
-                        );
+                        return null;
                       }
                       if (sizeOptions.length > 0) {
                         const selected = getSelectedSize(dish, standardOption, sizeOptions);
