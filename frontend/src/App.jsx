@@ -69,6 +69,7 @@ const uiText = {
     nameEn: "名称（English）",
     nameMs: "名称（Bahasa Melayu）",
     price: "价格",
+    priceStandard: "标准价格",
     priceSmall: "小份价格",
     priceMedium: "中份价格",
     priceLarge: "大份价格",
@@ -95,6 +96,7 @@ const uiText = {
     sizeSmall: "小份",
     sizeMedium: "中份",
     sizeLarge: "大份",
+    sizeStandard: "标准",
     cartRemark: "备注",
     cartRemarkPlaceholder: "口味/忌口等备注",
     paid: "已付款",
@@ -141,6 +143,7 @@ const uiText = {
     nameEn: "Name (English)",
     nameMs: "Name (Bahasa Melayu)",
     price: "Price",
+    priceStandard: "Standard Price",
     priceSmall: "Small Price",
     priceMedium: "Medium Price",
     priceLarge: "Large Price",
@@ -167,6 +170,7 @@ const uiText = {
     sizeSmall: "Small",
     sizeMedium: "Medium",
     sizeLarge: "Large",
+    sizeStandard: "Standard",
     cartRemark: "Remark",
     cartRemarkPlaceholder: "Taste notes or dietary needs",
     paid: "Paid",
@@ -213,6 +217,7 @@ const uiText = {
     nameEn: "Nama (English)",
     nameMs: "Nama (Bahasa Melayu)",
     price: "Harga",
+    priceStandard: "Harga Standard",
     priceSmall: "Harga Kecil",
     priceMedium: "Harga Sederhana",
     priceLarge: "Harga Besar",
@@ -239,6 +244,7 @@ const uiText = {
     sizeSmall: "Kecil",
     sizeMedium: "Sederhana",
     sizeLarge: "Besar",
+    sizeStandard: "Standard",
     cartRemark: "Catatan",
     cartRemarkPlaceholder: "Rasa/keperluan diet",
     paid: "Dibayar",
@@ -322,6 +328,7 @@ export default function App() {
     nameMs: "",
     category: categories[0],
     price: "",
+    priceStandard: "",
     priceSmall: "",
     priceMedium: "",
     priceLarge: "",
@@ -354,8 +361,19 @@ export default function App() {
 
   const getDishSizeOptions = (dish) => {
     const options = [];
+    const standardPrice =
+      typeof dish.priceStandard === "number"
+        ? dish.priceStandard
+        : typeof dish.price === "number"
+        ? dish.price
+        : null;
+    if (typeof standardPrice === "number" && standardPrice > 0) {
+      options.push({ label: "standard", value: "standard", price: standardPrice });
+    }
     if (typeof dish.priceSmall === "number") {
-      options.push({ label: "small", value: "small", price: dish.priceSmall });
+      if (dish.priceSmall > 0) {
+        options.push({ label: "small", value: "small", price: dish.priceSmall });
+      }
     }
     const mediumPrice =
       typeof dish.priceMedium === "number"
@@ -363,14 +381,16 @@ export default function App() {
         : typeof dish.price === "number"
         ? dish.price
         : null;
-    if (typeof mediumPrice === "number") {
+    if (typeof mediumPrice === "number" && mediumPrice > 0) {
       options.push({ label: "medium", value: "medium", price: mediumPrice });
     }
     if (typeof dish.priceLarge === "number") {
-      options.push({ label: "large", value: "large", price: dish.priceLarge });
+      if (dish.priceLarge > 0) {
+        options.push({ label: "large", value: "large", price: dish.priceLarge });
+      }
     }
     if (options.length === 0) {
-      options.push({ label: "medium", value: "medium", price: dish.price });
+      options.push({ label: "standard", value: "standard", price: dish.price || 0 });
     }
     return options;
   };
@@ -423,6 +443,7 @@ export default function App() {
   };
 
   const getSizeLabel = (value) => {
+    if (value === "standard") return t.sizeStandard;
     if (value === "small") return t.sizeSmall;
     if (value === "large") return t.sizeLarge;
     return t.sizeMedium;
@@ -559,6 +580,7 @@ export default function App() {
     const payload = {
       ...dishForm,
       price: Number(dishForm.price),
+      priceStandard: dishForm.priceStandard === "" ? undefined : Number(dishForm.priceStandard),
       priceSmall: dishForm.priceSmall === "" ? undefined : Number(dishForm.priceSmall),
       priceMedium: dishForm.priceMedium === "" ? undefined : Number(dishForm.priceMedium),
       priceLarge: dishForm.priceLarge === "" ? undefined : Number(dishForm.priceLarge)
@@ -575,6 +597,7 @@ export default function App() {
         nameMs: "",
         category: categories[0],
         price: "",
+        priceStandard: "",
         priceSmall: "",
         priceMedium: "",
         priceLarge: "",
@@ -599,6 +622,7 @@ export default function App() {
       nameMs: dish.nameMs || "",
       category: dish.category,
       price: dish.price,
+      priceStandard: dish.priceStandard ?? dish.price ?? "",
       priceSmall: dish.priceSmall ?? "",
       priceMedium: dish.priceMedium ?? dish.price ?? "",
       priceLarge: dish.priceLarge ?? "",
@@ -770,7 +794,10 @@ export default function App() {
                           ))}
                         </select>
                       </div>
-                      <input className="input" placeholder={t.priceMedium} value={dishForm.priceMedium} onChange={(event) => setDishForm({ ...dishForm, priceMedium: event.target.value, price: event.target.value })} />
+                      <input className="input" placeholder={t.priceStandard} value={dishForm.priceStandard} onChange={(event) => setDishForm({ ...dishForm, priceStandard: event.target.value, price: event.target.value })} />
+                      <div className="section">
+                        <input className="input" placeholder={t.priceMedium} value={dishForm.priceMedium} onChange={(event) => setDishForm({ ...dishForm, priceMedium: event.target.value })} />
+                      </div>
                       <div className="section">
                         <input className="input" placeholder={t.priceSmall} value={dishForm.priceSmall} onChange={(event) => setDishForm({ ...dishForm, priceSmall: event.target.value })} />
                       </div>
@@ -806,6 +833,7 @@ export default function App() {
                               nameMs: "",
                               category: categories[0],
                               price: "",
+                              priceStandard: "",
                               priceSmall: "",
                               priceMedium: "",
                               priceLarge: "",
@@ -992,7 +1020,7 @@ export default function App() {
                               }))
                             }
                           />
-                          {option.value === "small" ? t.sizeSmall : option.value === "large" ? t.sizeLarge : t.sizeMedium}
+                          {getSizeLabel(option.value)}
                         </label>
                       ))}
                     </div>

@@ -30,6 +30,7 @@ export default async function handler(req, res) {
       nameMs,
       category,
       price,
+      priceStandard,
       priceSmall,
       priceMedium,
       priceLarge,
@@ -51,6 +52,7 @@ export default async function handler(req, res) {
       nameMs: nameMs || "",
       category,
       price,
+      priceStandard: typeof priceStandard === "number" ? priceStandard : null,
       priceSmall: typeof priceSmall === "number" ? priceSmall : null,
       priceMedium: typeof priceMedium === "number" ? priceMedium : null,
       priceLarge: typeof priceLarge === "number" ? priceLarge : null,
@@ -71,6 +73,7 @@ export default async function handler(req, res) {
       nameMs,
       category,
       price,
+      priceStandard,
       priceSmall,
       priceMedium,
       priceLarge,
@@ -85,6 +88,7 @@ export default async function handler(req, res) {
     const update = { name, category, price, imageUrl, remark };
     if (typeof nameEn === "string") update.nameEn = nameEn;
     if (typeof nameMs === "string") update.nameMs = nameMs;
+    if (typeof priceStandard === "number") update.priceStandard = priceStandard;
     if (typeof priceSmall === "number") update.priceSmall = priceSmall;
     if (typeof priceMedium === "number") update.priceMedium = priceMedium;
     if (typeof priceLarge === "number") update.priceLarge = priceLarge;
