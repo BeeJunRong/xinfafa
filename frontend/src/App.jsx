@@ -1058,7 +1058,9 @@ export default function App() {
                   {getDishRemark(dish) && <div className="small section">{getDishRemark(dish)}</div>}
                   <div className="section">
                     <div className="size-selector">
-                      {getDishSizeOptions(dish).map((option) => (
+                      {getDishSizeOptions(dish)
+                        .filter((option) => option.value !== "standard")
+                        .map((option) => (
                         <label key={option.value} className="size-option">
                           <input
                             type="radio"
