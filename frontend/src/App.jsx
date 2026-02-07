@@ -261,6 +261,11 @@ function formatPrice(value) {
   return Number(value || 0).toFixed(2);
 }
 
+function toNumber(value) {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+}
+
 function useCart() {
   const [cart, setCart] = useState([]);
   const total = useMemo(
@@ -361,9 +366,13 @@ export default function App() {
 
   const getDishSizeOptions = (dish) => {
     const options = [];
-    const standardPrice =
+    const standardNumeric =
       typeof dish.priceStandard === "number"
         ? dish.priceStandard
+        : toNumber(dish.priceStandard);
+    const standardPrice =
+      typeof standardNumeric === "number"
+        ? standardNumeric
         : typeof dish.price === "number"
         ? dish.price
         : null;
@@ -454,6 +463,15 @@ export default function App() {
     if (value === "hot") return t.drinkTempHot;
     return "";
   };
+
+  const standardValue = String(dishForm.priceStandard || "").trim();
+  const standardNumeric = toNumber(standardValue);
+  const standardActive = standardValue !== "" && standardNumeric !== 0;
+  const sizeActive = [dishForm.priceSmall, dishForm.priceMedium, dishForm.priceLarge]
+    .map(toNumber)
+    .some((value) => typeof value === "number" && value > 0);
+  const disableStandard = sizeActive;
+  const disableSizes = standardActive;
 
   useEffect(() => {
     if (mode === "customer" && step === "menu") {
@@ -577,10 +595,20 @@ export default function App() {
 
   const handleDishSubmit = async (event) => {
     event.preventDefault();
+    const standardNumericValue = toNumber(dishForm.priceStandard);
+    const mediumNumericValue = toNumber(dishForm.priceMedium);
+    const smallNumericValue = toNumber(dishForm.priceSmall);
+    const largeNumericValue = toNumber(dishForm.priceLarge);
+    const priceBase =
+      standardNumericValue ??
+      mediumNumericValue ??
+      smallNumericValue ??
+      largeNumericValue ??
+      0;
     const payload = {
       ...dishForm,
-      price: Number(dishForm.price),
-      priceStandard: dishForm.priceStandard === "" ? undefined : Number(dishForm.priceStandard),
+      price: priceBase,
+      priceStandard: dishForm.priceStandard === "" ? undefined : dishForm.priceStandard,
       priceSmall: dishForm.priceSmall === "" ? undefined : Number(dishForm.priceSmall),
       priceMedium: dishForm.priceMedium === "" ? undefined : Number(dishForm.priceMedium),
       priceLarge: dishForm.priceLarge === "" ? undefined : Number(dishForm.priceLarge)
@@ -794,15 +822,39 @@ export default function App() {
                           ))}
                         </select>
                       </div>
-                      <input className="input" placeholder={t.priceStandard} value={dishForm.priceStandard} onChange={(event) => setDishForm({ ...dishForm, priceStandard: event.target.value, price: event.target.value })} />
+                      <input
+                        className="input"
+                        placeholder={t.priceStandard}
+                        value={dishForm.priceStandard}
+                        onChange={(event) => setDishForm({ ...dishForm, priceStandard: event.target.value })}
+                        disabled={disableStandard}
+                      />
                       <div className="section">
-                        <input className="input" placeholder={t.priceMedium} value={dishForm.priceMedium} onChange={(event) => setDishForm({ ...dishForm, priceMedium: event.target.value })} />
+                        <input
+                          className="input"
+                          placeholder={t.priceMedium}
+                          value={dishForm.priceMedium}
+                          onChange={(event) => setDishForm({ ...dishForm, priceMedium: event.target.value })}
+                          disabled={disableSizes}
+                        />
                       </div>
                       <div className="section">
-                        <input className="input" placeholder={t.priceSmall} value={dishForm.priceSmall} onChange={(event) => setDishForm({ ...dishForm, priceSmall: event.target.value })} />
+                        <input
+                          className="input"
+                          placeholder={t.priceSmall}
+                          value={dishForm.priceSmall}
+                          onChange={(event) => setDishForm({ ...dishForm, priceSmall: event.target.value })}
+                          disabled={disableSizes}
+                        />
                       </div>
                       <div className="section">
-                        <input className="input" placeholder={t.priceLarge} value={dishForm.priceLarge} onChange={(event) => setDishForm({ ...dishForm, priceLarge: event.target.value })} />
+                        <input
+                          className="input"
+                          placeholder={t.priceLarge}
+                          value={dishForm.priceLarge}
+                          onChange={(event) => setDishForm({ ...dishForm, priceLarge: event.target.value })}
+                          disabled={disableSizes}
+                        />
                       </div>
                       <div className="section">
                         <select className="input" value={dishForm.drinkTemp} onChange={(event) => setDishForm({ ...dishForm, drinkTemp: event.target.value })}>

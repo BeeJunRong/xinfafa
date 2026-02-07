@@ -6,7 +6,7 @@ const DishSchema = new mongoose.Schema({
   nameMs: { type: String, default: "" },
   category: { type: String, required: true },
   price: { type: Number, required: true },
-  priceStandard: { type: Number, default: null },
+  priceStandard: { type: mongoose.Schema.Types.Mixed, default: null },
   priceSmall: { type: Number, default: null },
   priceMedium: { type: Number, default: null },
   priceLarge: { type: Number, default: null },

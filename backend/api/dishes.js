@@ -40,7 +40,14 @@ export default async function handler(req, res) {
       remarkEn,
       remarkMs
     } = body;
-    if (!name || !category || typeof price !== "number") {
+    const priceNumber = typeof price === "number" ? price : Number(price);
+    const priceStandardValue =
+      typeof priceStandard === "string"
+        ? priceStandard.trim()
+        : typeof priceStandard === "number"
+        ? priceStandard
+        : null;
+    if (!name || !category || !Number.isFinite(priceNumber)) {
       return sendJson(res, 400, { success: false, message: "参数不完整" });
     }
     if (!categories.includes(category)) {
@@ -51,8 +58,8 @@ export default async function handler(req, res) {
       nameEn: nameEn || "",
       nameMs: nameMs || "",
       category,
-      price,
-      priceStandard: typeof priceStandard === "number" ? priceStandard : null,
+      price: priceNumber,
+      priceStandard: priceStandardValue === "" ? null : priceStandardValue,
       priceSmall: typeof priceSmall === "number" ? priceSmall : null,
       priceMedium: typeof priceMedium === "number" ? priceMedium : null,
       priceLarge: typeof priceLarge === "number" ? priceLarge : null,
@@ -88,7 +95,9 @@ export default async function handler(req, res) {
     const update = { name, category, price, imageUrl, remark };
     if (typeof nameEn === "string") update.nameEn = nameEn;
     if (typeof nameMs === "string") update.nameMs = nameMs;
-    if (typeof priceStandard === "number") update.priceStandard = priceStandard;
+    if (typeof priceStandard === "number" || typeof priceStandard === "string") {
+      update.priceStandard = priceStandard;
+    }
     if (typeof priceSmall === "number") update.priceSmall = priceSmall;
     if (typeof priceMedium === "number") update.priceMedium = priceMedium;
     if (typeof priceLarge === "number") update.priceLarge = priceLarge;
