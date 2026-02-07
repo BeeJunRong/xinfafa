@@ -105,7 +105,11 @@ const uiText = {
     revenueDate: "日期",
     revenueAmount: "收款总额",
     hideDish: "隐藏",
-    showDish: "显示"
+    showDish: "显示",
+    useStandard: "使用标准价",
+    useSizes: "选择大小份",
+    counterNotice: "柜台计价菜品：",
+    counterNoticeTip: "以上菜品以柜台实际价格为准"
   },
   en: {
     appName: "Xinfafa",
@@ -179,7 +183,11 @@ const uiText = {
     revenueDate: "Date",
     revenueAmount: "Total Revenue",
     hideDish: "Hide",
-    showDish: "Show"
+    showDish: "Show",
+    useStandard: "Use Standard",
+    useSizes: "Choose Sizes",
+    counterNotice: "Counter-priced items:",
+    counterNoticeTip: "Final price will be confirmed at the counter"
   },
   ms: {
     appName: "Xinfafa",
@@ -253,7 +261,11 @@ const uiText = {
     revenueDate: "Tarikh",
     revenueAmount: "Jumlah Kutipan",
     hideDish: "Sembunyi",
-    showDish: "Papar"
+    showDish: "Papar",
+    useStandard: "Guna Standard",
+    useSizes: "Pilih Saiz",
+    counterNotice: "Item harga kaunter:",
+    counterNoticeTip: "Harga akhir ditentukan di kaunter"
   }
 };
 
@@ -277,7 +289,7 @@ function useCart() {
     [cart]
   );
 
-  const addItem = (dish, size, price, temp) => {
+  const addItem = (dish, size, price, temp, priceText) => {
     setCart((prev) => {
       const found = prev.find(
         (item) => item._id === dish._id && item.size === size && item.temp === temp
@@ -289,7 +301,7 @@ function useCart() {
             : item
         );
       }
-      return [...prev, { ...dish, size, price, temp, quantity: 1 }];
+      return [...prev, { ...dish, size, price, priceText, temp, quantity: 1 }];
     });
   };
 
@@ -364,8 +376,7 @@ export default function App() {
     }
   }, [language]);
 
-  const getDishSizeOptions = (dish) => {
-    const options = [];
+  const getStandardOption = (dish) => {
     const standardNumeric =
       typeof dish.priceStandard === "number"
         ? dish.priceStandard
@@ -376,13 +387,23 @@ export default function App() {
         : typeof dish.price === "number"
         ? dish.price
         : null;
-    if (typeof standardPrice === "number" && standardPrice > 0) {
-      options.push({ label: "standard", value: "standard", price: standardPrice });
+    const standardText =
+      typeof dish.priceStandard === "string" && toNumber(dish.priceStandard) === null
+        ? dish.priceStandard.trim()
+        : "";
+    if (standardText) {
+      return { label: "standard", value: "standard", price: 0, priceText: standardText };
     }
-    if (typeof dish.priceSmall === "number") {
-      if (dish.priceSmall > 0) {
-        options.push({ label: "small", value: "small", price: dish.priceSmall });
-      }
+    if (typeof standardPrice === "number" && standardPrice > 0) {
+      return { label: "standard", value: "standard", price: standardPrice };
+    }
+    return null;
+  };
+
+  const getSizeOptions = (dish) => {
+    const options = [];
+    if (typeof dish.priceSmall === "number" && dish.priceSmall > 0) {
+      options.push({ label: "small", value: "small", price: dish.priceSmall });
     }
     const mediumPrice =
       typeof dish.priceMedium === "number"
@@ -393,20 +414,28 @@ export default function App() {
     if (typeof mediumPrice === "number" && mediumPrice > 0) {
       options.push({ label: "medium", value: "medium", price: mediumPrice });
     }
-    if (typeof dish.priceLarge === "number") {
-      if (dish.priceLarge > 0) {
-        options.push({ label: "large", value: "large", price: dish.priceLarge });
-      }
-    }
-    if (options.length === 0) {
-      options.push({ label: "standard", value: "standard", price: dish.price || 0 });
+    if (typeof dish.priceLarge === "number" && dish.priceLarge > 0) {
+      options.push({ label: "large", value: "large", price: dish.priceLarge });
     }
     return options;
   };
 
-  const getSelectedSize = (dish) => {
-    const options = getDishSizeOptions(dish);
-    return sizeSelections[dish._id] || options[0].value;
+  const getSelectedSize = (dish, standardOption, sizeOptions) => {
+    const selected = sizeSelections[dish._id];
+    if (selected === "standard" && standardOption) return "standard";
+    if (sizeOptions.some((option) => option.value === selected)) return selected;
+    if (standardOption) return "standard";
+    if (sizeOptions.length > 0) return sizeOptions[0].value;
+    return "standard";
+  };
+
+  const getDisplayOptions = (dish) => {
+    const standardOption = getStandardOption(dish);
+    const sizeOptions = getSizeOptions(dish);
+    const selected = getSelectedSize(dish, standardOption, sizeOptions);
+    if (selected === "standard" && standardOption) return [standardOption];
+    if (selected !== "standard" && sizeOptions.length > 0) return sizeOptions;
+    return standardOption ? [standardOption] : sizeOptions;
   };
 
   const getDrinkTempOptions = (dish) => {
@@ -515,6 +544,7 @@ export default function App() {
           nameEn: item.nameEn || "",
           nameMs: item.nameMs || "",
           price: item.price,
+          priceText: item.priceText || "",
           quantity: item.quantity,
           size: item.size,
           temp: item.temp || ""
@@ -666,7 +696,7 @@ export default function App() {
   const handleDeleteDish = async (id) => {
     try {
       await api.deleteDish(id);
-      loadDishes();
+      loadDishes(true);
     } catch (err) {
       handleError(err);
     }
@@ -774,7 +804,7 @@ export default function App() {
                               {getItemName(item)}
                               {item.size ? `（${getSizeLabel(item.size)}）` : ""}
                               {item.temp ? `/${getTempLabel(item.temp)}` : ""}
-                              {` x ${item.quantity}（￥${formatPrice(item.price)}）`}
+                              {` x ${item.quantity}（${item.priceText ? item.priceText : `￥${formatPrice(item.price)}`}）`}
                             </div>
                           ))}
                           {order.remark && (
@@ -911,7 +941,7 @@ export default function App() {
                             {dish.status === 0 && <span className="tag">{t.hideDish}</span>}
                           </div>
                           <div className="small">
-                            {categoryLabelMap[dish.category]} · {getDishSizeOptions(dish)
+                            {categoryLabelMap[dish.category]} · {getDisplayOptions(dish)
                               .map((option) => `${getSizeLabel(option.value)} ￥${formatPrice(option.price)}`)
                               .join(" / ")}
                           </div>
@@ -997,7 +1027,7 @@ export default function App() {
                     <div className="small">
                       {item.size ? `${getSizeLabel(item.size)} · ` : ""}
                       {item.temp ? `${getTempLabel(item.temp)} · ` : ""}
-                      ￥{formatPrice(item.price)}
+                      {item.priceText ? item.priceText : `￥${formatPrice(item.price)}`}
                     </div>
                   </div>
                   <div className="flex">
@@ -1021,6 +1051,16 @@ export default function App() {
                 <strong>{t.total}</strong>
                 <strong>￥{formatPrice(total)}</strong>
               </div>
+              {cart.some((item) => item.priceText) && (
+                <div className="small">
+                  {t.counterNotice}
+                  {cart
+                    .filter((item) => item.priceText)
+                    .map((item) => getItemName(item))
+                    .join("、")}
+                  。{t.counterNoticeTip}
+                </div>
+              )}
               <button className="button" onClick={submitOrder}>{t.submitOrder}</button>
             </div>
           )}
@@ -1045,8 +1085,12 @@ export default function App() {
                     <div>
                       <h4>{getDishName(dish)}</h4>
                       <div className="small">
-                        {getDishSizeOptions(dish)
-                          .map((option) => `${getSizeLabel(option.value)} ￥${formatPrice(option.price)}`)
+                        {getDisplayOptions(dish)
+                          .map((option) =>
+                            option.priceText
+                              ? `${getSizeLabel(option.value)} ${option.priceText}`
+                              : `${getSizeLabel(option.value)} ￥${formatPrice(option.price)}`
+                          )
                           .join(" / ")}
                       </div>
                     </div>
@@ -1057,27 +1101,55 @@ export default function App() {
                   )}
                   {getDishRemark(dish) && <div className="small section">{getDishRemark(dish)}</div>}
                   <div className="section">
-                    <div className="size-selector">
-                      {getDishSizeOptions(dish)
-                        .filter((option) => option.value !== "standard")
-                        .map((option) => (
-                        <label key={option.value} className="size-option">
-                          <input
-                            type="radio"
-                            name={`size-${dish._id}`}
-                            value={option.value}
-                            checked={getSelectedSize(dish) === option.value}
-                            onChange={() =>
-                              setSizeSelections((prev) => ({
-                                ...prev,
-                                [dish._id]: option.value
-                              }))
-                            }
-                          />
-                          {getSizeLabel(option.value)}
-                        </label>
-                      ))}
-                    </div>
+                    {(() => {
+                      const standardOption = getStandardOption(dish);
+                      const sizeOptions = getSizeOptions(dish);
+                      const selected = getSelectedSize(dish, standardOption, sizeOptions);
+                      const showStandard = Boolean(standardOption) && selected === "standard";
+                      const showSizes = sizeOptions.length > 0 && selected !== "standard";
+                      return (
+                        <div className="size-selector">
+                          {showStandard && (
+                            <label className="size-option">
+                              <input type="radio" checked readOnly />
+                              {t.sizeStandard}
+                            </label>
+                          )}
+                          {showSizes &&
+                            sizeOptions.map((option) => (
+                              <label key={option.value} className="size-option">
+                                <input
+                                  type="radio"
+                                  name={`size-${dish._id}`}
+                                  value={option.value}
+                                  checked={selected === option.value}
+                                  onChange={() =>
+                                    setSizeSelections((prev) => ({
+                                      ...prev,
+                                      [dish._id]: option.value
+                                    }))
+                                  }
+                                />
+                                {getSizeLabel(option.value)}
+                              </label>
+                            ))}
+                          {standardOption && sizeOptions.length > 0 && (
+                            <button
+                              type="button"
+                              className="button ghost"
+                              onClick={() =>
+                                setSizeSelections((prev) => ({
+                                  ...prev,
+                                  [dish._id]: showStandard ? sizeOptions[0].value : "standard"
+                                }))
+                              }
+                            >
+                              {showStandard ? t.useSizes : t.useStandard}
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
                     {getDrinkTempOptions(dish).length > 0 && (
                       <div className="size-selector">
                         {getDrinkTempOptions(dish).map((temp) => (
@@ -1102,10 +1174,21 @@ export default function App() {
                     <button
                       className="button"
                       onClick={() => {
-                        const selected = getDishSizeOptions(dish).find(
-                          (option) => option.value === getSelectedSize(dish)
+                        const standardOption = getStandardOption(dish);
+                        const sizeOptions = getSizeOptions(dish);
+                        const selectedValue = getSelectedSize(dish, standardOption, sizeOptions);
+                        const selectedOption =
+                          selectedValue === "standard"
+                            ? standardOption
+                            : sizeOptions.find((option) => option.value === selectedValue);
+                        if (!selectedOption) return;
+                        addItem(
+                          dish,
+                          selectedOption.value,
+                          selectedOption.price,
+                          getSelectedTemp(dish),
+                          selectedOption.priceText || ""
                         );
-                        addItem(dish, selected.value, selected.price, getSelectedTemp(dish));
                       }}
                     >
                       {t.addToCart}
@@ -1130,11 +1213,21 @@ export default function App() {
                   {getItemName(item)}
                   {item.size ? `（${getSizeLabel(item.size)}）` : ""}
                   {item.temp ? `/${getTempLabel(item.temp)}` : ""}
-                  {` x ${item.quantity}（￥${formatPrice(item.price)}）`}
+                  {` x ${item.quantity}（${item.priceText ? item.priceText : `￥${formatPrice(item.price)}`}）`}
                 </div>
               ))}
               {lastOrder.remark && (
                 <div className="small">{t.cartRemark}：{lastOrder.remark}</div>
+              )}
+              {lastOrder.items.some((item) => item.priceText) && (
+                <div className="small">
+                  {t.counterNotice}
+                  {lastOrder.items
+                    .filter((item) => item.priceText)
+                    .map((item) => getItemName(item))
+                    .join("、")}
+                  。{t.counterNoticeTip}
+                </div>
               )}
               <div className="small">{t.total}：￥{formatPrice(lastOrder.total)}</div>
             </div>

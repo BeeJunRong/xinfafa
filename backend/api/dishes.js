@@ -112,7 +112,7 @@ export default async function handler(req, res) {
   if (req.method === "DELETE") {
     const { id } = body;
     if (!id) return sendJson(res, 400, { success: false, message: "缺少id" });
-    await Dish.findByIdAndUpdate(id, { status: 0 });
+    await Dish.deleteOne({ _id: id });
     return sendJson(res, 200, { success: true });
   }
 
